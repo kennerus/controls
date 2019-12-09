@@ -3,32 +3,45 @@
     <h1 class="title">Три взаимодействующих контрола</h1>
 
     <Control v-for="(control, index) in controls"
-                 :key="control.title + index"
-                 :index="index"
+             :key="control.title + index"
+             :index="index"
+             :control="control"
+
+             @change="saveControl"
     />
   </div>
 </template>
 
 <script>
   import {mapGetters} from 'vuex';
-  import Control from "./Control";
+  import Control from './Control';
 
-export default {
-  name: 'home',
-  components: {Control},
-  data() {
-    return {
-    }
-  },
-  computed: {
-    ...mapGetters({
-      controls: 'controls',
-    })
-  },
-  methods: {
-  },
+  export default {
+    name: 'home',
+    components: {
+      Control
+    },
+    computed: {
+      ...mapGetters({
+        getControls: 'getControls',
+      })
+    },
+    // сделаем вид, что получили данные о контролах с бэка
+    mounted() {
+      this.controls = this.getControls;
+    },
+    data() {
+      return {
+        controls: []
+      }
+    },
+    methods: {
+      saveControl(control) {
 
-}
+      }
+    },
+
+  }
 </script>
 
 <style scoped>

@@ -4,6 +4,7 @@
            class="input"
            ref="myInput"
            v-model="inputValue"
+
            @input="writeDigits($event.target.value)"
            @keydown.38="increment"
            @keydown.40="decrement"
@@ -12,18 +13,24 @@
            @keydown.tab.prevent="tabStep"
     >
 
-    <button type="button" class="increment" @click="increment">
-      <img :src="require('../assets/icons/input_up.svg')" width="8" alt="">
+    <button type="button"
+            class="increment"
+            @click="increment"
+    >
+      <img src="../assets/icons/input_up.svg" width="8" alt="">
     </button>
 
-    <button type="button" class="decrement" @click="decrement">
-      <img :src="require('../assets/icons/input_down.svg')" width="8" alt="">
+    <button type="button"
+            class="decrement"
+            @click="decrement"
+    >
+      <img src="../assets/icons/input_down.svg" width="8" alt="">
     </button>
 
     <button type="button"
             class="helper"
-            v-if="currentControl.helper"
-            @click="helperMethodCall(currentControl.name)"
+            v-if="control.helper"
+            @click="helperMethodCall(control.name)"
     >
       {{helperTitle}}
     </button>
@@ -43,6 +50,22 @@
       passValue: {
         type: Number,
         default: 0
+      },
+      control: {
+        type: Object,
+        default: () => ({
+          value: 0,
+          title: 'Контролл',
+          name: 'main',
+          id: 1,
+          helper: {
+            title: 'Сумма',
+          },
+        }),
+      },
+      active: {
+        type: Boolean,
+        default: false,
       }
     },
     data() {
@@ -54,18 +77,13 @@
       ...mapState({
         constValue: state => state.constValue
       }),
-      ...mapGetters({
-        controls: 'controls',
-      }),
-      currentControl() {
-        return this.controls[this.index]
-      },
+
       /**
        * У некоторых инпутов может не быть кнопки помощника, поэтому проверяем есть ли кнопка
        */
       helperTitle() {
-        if (this.currentControl.helper) {
-          return this.currentControl.helper.title
+        if (this.control.helper) {
+          return this.control.helper.title
         }
       },
     },
@@ -77,17 +95,20 @@
         switchInputsTab: 'SWITCH_BETWEEN_INPUTS_TAB',
         switchInputsShiftTab: 'SWITCH_BETWEEN_INPUTS_SHIFT_TAB',
       }),
+
       ...mapActions({
         hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
       }),
+
       async switchInputState() {
-        this.inputValue = this.currentControl.value;
+        this.inputValue = this.control.value;
 
         await this.changeControlStatus({
-          isActive: !this.currentControl.isActive,
+          isActive: !this.control.isActive,
           index: this.index
         })
       },
+
       /**
        * При вводе символов проверяет регуляркой и если символ не цифра - возвращает пустую строку
        * метод replace работает только со строкой
@@ -98,26 +119,30 @@
         this.inputValue = value.replace(/[^0-9.]/g, '');
         this.$emit('pass-input-value', this.inputValue);
       },
+
       hideInputAndSave() {
-        if (this.currentControl.isActive) {
+        if (this.control.isActive) {
           this.hideInputAndSaveData({
-            currentControlName: this.currentControl.name,
+            currentControlName: this.control.name,
             name: 'model',
             value: Number(this.inputValue),
             index: this.index
           });
         }
       },
+
       increment() {
         this.inputValue++;
         this.$emit('pass-input-value', this.inputValue);
       },
+
       decrement() {
         if (this.inputValue > 0) {
           this.inputValue--;
           this.$emit('pass-input-value', this.inputValue);
         }
       },
+
       /**
        * Событие, которое вешается на кнопку помощник
        *
@@ -129,13 +154,14 @@
             main: 'main',
             model: 'model'
           });
-          this.inputValue = this.currentControl.value;
+          this.inputValue = this.control.value;
         } else if (name === 'model') {
           this.inputValue = this.constValue;
         }
 
         this.$emit('pass-input-value', this.inputValue);
       },
+
       async tabStep(e) {
         if (e.shiftKey) {
           await this.switchInputsShiftTab(Number(this.index));

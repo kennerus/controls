@@ -10,6 +10,7 @@ export default new Vuex.Store({
         value: 0,
         title: 'Контролл',
         name: 'main',
+        id: 1,
         helper: {
           title: 'Сумма',
         },
@@ -19,6 +20,7 @@ export default new Vuex.Store({
         value: 0,
         title: 'Контролл',
         name: 'model',
+        id: 2,
         helper: {
           title: 'Константа',
         },
@@ -28,13 +30,14 @@ export default new Vuex.Store({
         value: 0,
         title: 'Контролл',
         name: 'model',
+        id: 3,
         isActive: false
       },
     ],
     constValue: 1000,
   },
   getters: {
-    controls: state => state.controls,
+    getControls: state => state.controls,
   },
   mutations: {
     /**
