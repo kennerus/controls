@@ -17,6 +17,7 @@
                   :control="control"
                   :value="JSON.parse(JSON.stringify(control.value))"
 
+                  @change="changeStateHandler"
                   @submit="handleNewValue"
     />
   </div>
@@ -76,6 +77,10 @@
       ...mapActions({
         hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
       }),
+
+      changeStateHandler() {
+        this.active = false;
+      },
 
       openInput() {
         this.inputValue = this.control.value;

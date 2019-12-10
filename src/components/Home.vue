@@ -28,7 +28,7 @@
     },
     // сделаем вид, что получили данные о контролах с бэка
     mounted() {
-      this.controls = this.getControls;
+      window.setTimeout(() => this.controls = this.getControls, 200);
     },
     data() {
       return {

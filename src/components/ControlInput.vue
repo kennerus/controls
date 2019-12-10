@@ -1,9 +1,9 @@
 <template>
-  <div class="input-wrap">
+  <div class="input-wrap" v-on-clickaway="hideInput">
     <input type="text"
            class="input"
            ref="myInput"
-           v-model="inputValue"
+           :value="value"
 
            @input="writeDigits($event.target.value)"
            @keydown.38="increment"
@@ -38,11 +38,16 @@
 </template>
 
 <script>
+  import { mixin as clickaway } from 'vue-clickaway';
   import {mapState, mapGetters, mapMutations, mapActions} from 'vuex';
 
   export default {
-    name: "ControllInput",
+    name: "ControlInput",
+    mixins: [clickaway],
     props: {
+      value: {
+        type: [Number, String],
+      },
       index: {
         type: Number,
         required: true
@@ -63,14 +68,9 @@
           },
         }),
       },
-      active: {
-        type: Boolean,
-        default: false,
-      }
     },
     data() {
       return {
-        inputValue: 0,
       }
     },
     computed: {
@@ -99,6 +99,10 @@
       ...mapActions({
         hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
       }),
+
+      hideInput() {
+        this.$emit('change');
+      },
 
       async switchInputState() {
         this.inputValue = this.control.value;
