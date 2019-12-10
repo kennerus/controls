@@ -3,11 +3,11 @@
     <h1 class="title">Три взаимодействующих контрола</h1>
 
     <Control v-for="(control, index) in controls"
-             :key="control.title + index"
+             :key="control.id"
              :index="index"
              :control="control"
 
-             @change="saveControl"
+             @submit="saveControl($event, control.id)"
     />
   </div>
 </template>
@@ -32,7 +32,7 @@
     },
     data() {
       return {
-        controls: []
+        controls: [],
       }
     },
     methods: {

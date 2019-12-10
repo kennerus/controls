@@ -1,22 +1,25 @@
-<template>
+<template @keyup="keyupHandler">
   <div class="control-wrap">
     <span class="control-title">{{control.title}} {{index}}</span>
 
-    <button class="control-btn"
+    <button type="button"
+            class="control-btn"
             tabindex="0"
-            v-if="!active"
+            v-if="selectedControlId !== control.id"
 
             @click="openInput"
     >
-      <span class="control-btn__text">{{makeSpaces}}</span>
+      <span class="control-btn__text">{{formatNumber}}</span>
       <img src="../assets/icons/down.svg" width="6" alt="">
     </button>
 
-    <ControlInput v-if="active"
+    <ControlInput v-else
                   :index="index"
                   :control="control"
-                  :value="JSON.parse(JSON.stringify(control.value))"
+                  :value="inputValue"
 
+                  @tab="controlHandler"
+                  @input="inputHandler"
                   @change="changeStateHandler"
                   @submit="handleNewValue"
     />
@@ -28,7 +31,7 @@
   import ControlInput from './ControlInput';
 
   export default {
-    name: "Control",
+    name: 'Control',
     components: {ControlInput},
     props: {
       index: {
@@ -49,24 +52,22 @@
       }
     },
     computed: {
-      makeString() {
-        return String(this.control.value);
+      formatNumber() {
+        const valueString = this.control.value.toString();
+        return valueString.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
       },
-
-      makeSpaces() {
-        return this.makeString.replace(/[^0-9.]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-      },
-    },
-    mounted() {
-
     },
     data() {
       return {
         inputValue: 0,
         active: false,
+        selectedControlId: null
       }
     },
     methods: {
+      keyupHandler() {
+        console.log(123);
+      },
       ...mapMutations({
         changeControlState: 'CHANGE_CONTROL_VALUE',
         changeControlStatus: 'CHANGE_CONTROL_STATUS',
@@ -78,13 +79,22 @@
         hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
       }),
 
+      controlHandler(controlId) {
+        this.selectedControlId = controlId;
+      },
+
       changeStateHandler() {
         this.active = false;
       },
 
       openInput() {
-        this.inputValue = this.control.value;
+        this.controlHandler(this.control.id);
+        this.inputValue = JSON.parse(JSON.stringify(this.control.value));
         this.active = true;
+      },
+
+      inputHandler(value) {
+        this.inputValue = value;
       },
 
       hideInputAndSave() {
@@ -99,8 +109,8 @@
       },
 
       handleNewValue(value) {
-
-      }
+        this.$emit('submit', value);
+      },
     },
   }
 </script>

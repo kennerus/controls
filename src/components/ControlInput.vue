@@ -1,5 +1,7 @@
 <template>
-  <div class="input-wrap" v-on-clickaway="hideInput">
+  <div class="input-wrap"
+       v-on-clickaway="hideInput"
+  >
     <input type="text"
            class="input"
            ref="myInput"
@@ -120,8 +122,7 @@
        * @param value {String}
        */
       writeDigits(value) {
-        this.inputValue = value.replace(/[^0-9.]/g, '');
-        this.$emit('pass-input-value', this.inputValue);
+        this.$emit('input', value.replace(/[^0-9.]/g, ''));
       },
 
       hideInputAndSave() {
@@ -167,10 +168,11 @@
       },
 
       async tabStep(e) {
+        this.$emit('tab', this.control.id);
         if (e.shiftKey) {
-          await this.switchInputsShiftTab(Number(this.index));
+          // await this.switchInputsShiftTab(Number(this.index));
         } else {
-          await this.switchInputsTab(Number(this.index));
+          // await this.switchInputsTab(Number(this.index));
         }
       }
     },

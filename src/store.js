@@ -14,7 +14,6 @@ export default new Vuex.Store({
         helper: {
           title: 'Сумма',
         },
-        isActive: false
       },
       {
         value: 0,
@@ -24,14 +23,12 @@ export default new Vuex.Store({
         helper: {
           title: 'Константа',
         },
-        isActive: false
       },
       {
         value: 0,
         title: 'Контролл',
         name: 'model',
         id: 3,
-        isActive: false
       },
     ],
     constValue: 1000,
@@ -45,22 +42,11 @@ export default new Vuex.Store({
      *
      * @param state
      * @param data {Object}
-     * @param data.value {String || Number} - новое значение
-     * @param data.index {Number} - индекс текущего контролла в массиве
+     * @param data.value {Number} - новое значение
+     * @param data.id {Number} - id контрола
      */
     'CHANGE_CONTROL_VALUE': (state, data) => {
       state.controls[data.index].value = data.value;
-    },
-    /**
-     * Изменение статуса контролла
-     *
-     * @param state
-     * @param data {Object}
-     * @param data.isActive {Boolean} - если true - показывает инпут, false - спрятать
-     * @param data.index {Number} - индекс текущего контролла в массиве
-     */
-    'CHANGE_CONTROL_STATUS': (state, data) => {
-      state.controls[data.index].isActive = data.isActive;
     },
     /**
      * Суммировать данные двух других контроллов
@@ -95,36 +81,6 @@ export default new Vuex.Store({
           controls[i].value = data.value;
       }
     },
-    /**
-     * Переключение между контроллами табом (вниз)
-     *
-     * @param state
-     * @param index {Number} - индекс текущего контролла в массиве
-     */
-    'SWITCH_BETWEEN_INPUTS_TAB': (state, index) => {
-      state.controls[index].isActive = false;
-
-      if (index === state.controls.length - 1) {
-        state.controls[0].isActive = true;
-      } else {
-        state.controls[index + 1].isActive = true;
-      }
-    },
-    /**
-     * Переключение между контроллами shift+tab (вверх)
-     *
-     * @param state
-     * @param index {Number} - индекс текущего контролла в массиве
-     */
-    'SWITCH_BETWEEN_INPUTS_SHIFT_TAB': (state, index) => {
-      state.controls[index].isActive = false;
-
-      if (index === 0) {
-        state.controls[state.controls.length - 1].isActive = true;
-      } else {
-        state.controls[index - 1].isActive = true;
-      }
-    },
   },
   actions: {
     /**
@@ -150,11 +106,6 @@ export default new Vuex.Store({
         value: data.value,
         index: data.index
       });
-
-      commit('CHANGE_CONTROL_STATUS', {
-        isActive: false,
-        index: data.index
-      })
     }
   }
 })
