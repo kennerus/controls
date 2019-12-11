@@ -1,28 +1,28 @@
-<template @keyup="keyupHandler">
+<template>
   <div class="control-wrap">
-    <span class="control-title">{{control.title}} {{index}}</span>
+    <span class="control-title">{{control.title}} </span>
 
     <button type="button"
             class="control-btn"
             tabindex="0"
             v-if="selectedControlId !== control.id"
 
-            @click="openInput"
+            @click="changeStateHandler(false, control.id)"
     >
       <span class="control-btn__text">{{formatNumber}}</span>
       <img src="../assets/icons/down.svg" width="6" alt="">
     </button>
 
-    <ControlInput v-else
-                  :index="index"
-                  :control="control"
-                  :value="inputValue"
+    <keep-alive v-else>
+      <ControlInput :control="control"
+                    :value="inputValue"
 
-                  @tab="controlHandler"
-                  @input="inputHandler"
-                  @change="changeStateHandler"
-                  @submit="handleNewValue"
-    />
+                    @input="inputHandler"
+                    @change="changeStateHandler($event, control.id)"
+                    @switchControl="switchControlHandler"
+                    @submit="handleNewValue"
+      />
+    </keep-alive>
   </div>
 </template>
 
@@ -34,9 +34,8 @@
     name: 'Control',
     components: {ControlInput},
     props: {
-      index: {
-        type: Number,
-        required: true
+      selectedControlId: {
+        type: [Number, null],
       },
       control: {
         type: Object,
@@ -61,13 +60,9 @@
       return {
         inputValue: 0,
         active: false,
-        selectedControlId: null
       }
     },
     methods: {
-      keyupHandler() {
-        console.log(123);
-      },
       ...mapMutations({
         changeControlState: 'CHANGE_CONTROL_VALUE',
         changeControlStatus: 'CHANGE_CONTROL_STATUS',
@@ -79,33 +74,20 @@
         hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
       }),
 
-      controlHandler(controlId) {
-        this.selectedControlId = controlId;
-      },
+      changeStateHandler(clickAwayClose, controlId) {
+        if (clickAwayClose === false) this.$emit('change', controlId);
 
-      changeStateHandler() {
-        this.active = false;
-      },
-
-      openInput() {
-        this.controlHandler(this.control.id);
-        this.inputValue = JSON.parse(JSON.stringify(this.control.value));
-        this.active = true;
+        this.$nextTick(() => {
+          if (clickAwayClose && this.selectedControlId === controlId) this.$emit('change', controlId);
+        })
       },
 
       inputHandler(value) {
         this.inputValue = value;
       },
 
-      hideInputAndSave() {
-        if (this.active) {
-          this.hideInputAndSaveData({
-            currentControlName: this.control.name,
-            name: 'model',
-            value: Number(this.inputValue),
-            index: this.index
-          });
-        }
+      switchControlHandler(order) {
+        this.$emit('switchControl', {order, controlId: this.control.id});
       },
 
       handleNewValue(value) {
@@ -130,23 +112,24 @@
   }
 
   .control-btn {
-    width: 116px;
-    height: 30px;
-    padding: 5px 10px;
-    box-sizing: border-box;
-  }
-
-  .control-btn {
     position: relative;
     z-index: 1;
 
     display: flex;
     justify-content: flex-start;
     align-items: center;
+    width: 116px;
+    height: 30px;
+    padding: 5px 10px;
+    box-sizing: border-box;
 
     background-color: transparent;
     border: 0;
     cursor: pointer;
+  }
+
+  .control-btn:hover {
+    color: #385469;
   }
 
   .control-btn__text {

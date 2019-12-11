@@ -8,30 +8,38 @@ export default new Vuex.Store({
     controls: [
       {
         value: 0,
-        title: 'Контролл',
+        title: 'Контролл 1',
         name: 'main',
         id: 1,
         helper: {
           title: 'Сумма',
+          command: {
+            type: 'sum',
+            bounded_controls: [1, 2],
+          }
         },
       },
       {
         value: 0,
-        title: 'Контролл',
+        title: 'Контролл 2',
         name: 'model',
         id: 2,
         helper: {
           title: 'Константа',
+          command: {
+            type: 'const',
+            value: 1000,
+          }
         },
       },
       {
         value: 0,
-        title: 'Контролл',
+        title: 'Контролл 3',
         name: 'model',
         id: 3,
+        helper: null
       },
     ],
-    constValue: 1000,
   },
   getters: {
     getControls: state => state.controls,

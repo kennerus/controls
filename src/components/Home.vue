@@ -2,11 +2,13 @@
   <div class="home">
     <h1 class="title">Три взаимодействующих контрола</h1>
 
-    <Control v-for="(control, index) in controls"
+    <Control v-for="control in controls"
              :key="control.id"
-             :index="index"
              :control="control"
+             :selectedControlId="selectedControlId"
 
+             @change="toggleControl"
+             @switchControl="switchControlHandler"
              @submit="saveControl($event, control.id)"
     />
   </div>
@@ -33,12 +35,49 @@
     data() {
       return {
         controls: [],
+        selectedControlId: null,
       }
     },
     methods: {
-      saveControl(control) {
+      toggleControl(controlId) {
+        this.selectedControlId = this.selectedControlId === controlId ? null : controlId;
+      },
 
-      }
+      /**
+       * Переключение контролов табом
+       *
+       * @param {Object} switchData
+       * @param {String} switchData.order - порядок переключения prev/next
+       * @param {Number} switchData.controlId - id контрола с которого переключается
+       */
+      switchControlHandler(switchData) {
+        const {order, controlId} = switchData;
+        const lastControlIndex = this.controls.length - 1;
+        const controlIdIndex = this.controls.findIndex(control => control.id === controlId);
+
+        const orders = {
+          next: () => {
+            if (controlIdIndex === lastControlIndex) {
+              return this.controls[0].id;
+            } else {
+              return this.controls[controlIdIndex + 1].id
+            }
+          },
+
+          prev: () => {
+            if (controlIdIndex === 0) {
+              return this.controls[lastControlIndex].id;
+            } else {
+              return this.controls[controlIdIndex - 1].id;
+            }
+          },
+        };
+
+        this.selectedControlId = orders[order]();
+      },
+
+      saveControl(value, controlId) {
+      },
     },
 
   }

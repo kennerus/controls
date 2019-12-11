@@ -1,22 +1,27 @@
+<!--
+    использован input[type=text] потому, что если использовать number при вводе строки value инпута полностью обнуляется,
+    даже если ранее было введено какое-нибудь число
+-->
 <template>
   <div class="input-wrap"
-       v-on-clickaway="hideInput"
+       v-on-clickaway="hideInputAndSave"
   >
     <input type="text"
            class="input"
            ref="myInput"
-           :value="value"
+           :value="inputValue"
 
-           @input="writeDigits($event.target.value)"
+           @input="inputHandler"
            @keydown.38="increment"
            @keydown.40="decrement"
-           @keyup.esc="switchInputState"
-           @keyup.enter="hideInputAndSave"
+           @keydown.esc="hideInput(false)"
+           @keydown.enter="hideInputAndSave(false)"
            @keydown.tab.prevent="tabStep"
     >
 
     <button type="button"
             class="increment"
+
             @click="increment"
     >
       <img src="../assets/icons/input_up.svg" width="8" alt="">
@@ -24,6 +29,7 @@
 
     <button type="button"
             class="decrement"
+
             @click="decrement"
     >
       <img src="../assets/icons/input_down.svg" width="8" alt="">
@@ -32,9 +38,10 @@
     <button type="button"
             class="helper"
             v-if="control.helper"
+
             @click="helperMethodCall(control.name)"
     >
-      {{helperTitle}}
+      {{helperTitle()}}
     </button>
   </div>
 </template>
@@ -50,14 +57,6 @@
       value: {
         type: [Number, String],
       },
-      index: {
-        type: Number,
-        required: true
-      },
-      passValue: {
-        type: Number,
-        default: 0
-      },
       control: {
         type: Object,
         default: () => ({
@@ -71,23 +70,16 @@
         }),
       },
     },
+    created() {
+      this.inputValue = this.value;
+    },
+    mounted() {
+      this.$nextTick(() => this.$refs.myInput.select());
+    },
     data() {
       return {
+        inputValue: 0,
       }
-    },
-    computed: {
-      ...mapState({
-        constValue: state => state.constValue
-      }),
-
-      /**
-       * У некоторых инпутов может не быть кнопки помощника, поэтому проверяем есть ли кнопка
-       */
-      helperTitle() {
-        if (this.control.helper) {
-          return this.control.helper.title
-        }
-      },
     },
     methods: {
       ...mapMutations({
@@ -102,50 +94,46 @@
         hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
       }),
 
-      hideInput() {
-        this.$emit('change');
-      },
-
-      async switchInputState() {
-        this.inputValue = this.control.value;
-
-        await this.changeControlStatus({
-          isActive: !this.control.isActive,
-          index: this.index
-        })
-      },
-
       /**
-       * При вводе символов проверяет регуляркой и если символ не цифра - возвращает пустую строку
-       * метод replace работает только со строкой
-       *
-       * @param value {String}
+       * У некоторых инпутов может не быть кнопки помощника, поэтому проверяем есть ли кнопка
        */
-      writeDigits(value) {
-        this.$emit('input', value.replace(/[^0-9.]/g, ''));
-      },
-
-      hideInputAndSave() {
-        if (this.control.isActive) {
-          this.hideInputAndSaveData({
-            currentControlName: this.control.name,
-            name: 'model',
-            value: Number(this.inputValue),
-            index: this.index
-          });
-        }
+      helperTitle() {
+        return this.control.helper ? this.control.helper.title : '';
       },
 
       increment() {
         this.inputValue++;
-        this.$emit('pass-input-value', this.inputValue);
       },
 
       decrement() {
-        if (this.inputValue > 0) {
-          this.inputValue--;
-          this.$emit('pass-input-value', this.inputValue);
-        }
+        if (this.inputValue > 0) this.inputValue--;
+      },
+
+      hideInput(clickAway) {
+        this.$emit('change', clickAway);
+      },
+
+      hideInputAndSave(clickAway = false) {
+        this.hideInput(clickAway);
+        this.$emit('submit', this.inputValue);
+      },
+
+      tabStep(e) {
+        this.$emit('switchControl', e.shiftKey ? 'prev' : 'next');
+        this.hideInputAndSave(false);
+      },
+
+      /**
+       * При вводе символов нужно обновлять value инпута, иначе в инпуте будут показываться другие символы
+       *
+       * @param {Object} event
+       */
+      inputHandler(event) {
+        let {value} = event.target;
+
+        const clearValue = value.replace(/[^0-9.]/g, '');
+        event.target.value = clearValue;
+        this.inputValue = Number(clearValue);
       },
 
       /**
@@ -163,25 +151,8 @@
         } else if (name === 'model') {
           this.inputValue = this.constValue;
         }
-
-        this.$emit('pass-input-value', this.inputValue);
       },
-
-      async tabStep(e) {
-        this.$emit('tab', this.control.id);
-        if (e.shiftKey) {
-          // await this.switchInputsShiftTab(Number(this.index));
-        } else {
-          // await this.switchInputsTab(Number(this.index));
-        }
-      }
     },
-    beforeMount() {
-      this.inputValue = this.passValue;
-    },
-    mounted() {
-      this.$refs.myInput.select();
-    }
   }
 </script>
 
@@ -239,5 +210,9 @@
     background-color: transparent;
     border: none;
     cursor: pointer;
+  }
+
+  input[type=number]::-webkit-inner-spin-button {
+
   }
 </style>
