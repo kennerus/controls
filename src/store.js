@@ -9,35 +9,41 @@ export default new Vuex.Store({
       {
         value: 0,
         title: 'Контролл 1',
-        name: 'main',
         id: 1,
         helper: {
           title: 'Сумма',
           command: {
             type: 'sum',
-            bounded_controls: [1, 2],
-          }
+            value: null,
+          },
+          bound: [2, 3],
+          event: 'click',
         },
       },
       {
         value: 0,
         title: 'Контролл 2',
-        name: 'model',
         id: 2,
         helper: {
           title: 'Константа',
           command: {
             type: 'const',
             value: 1000,
-          }
+          },
+          bound: [3],
+          event: 'input',
         },
       },
       {
         value: 0,
         title: 'Контролл 3',
-        name: 'model',
         id: 3,
-        helper: null
+        helper: {
+          title: '',
+          command: null,
+          bound: [2],
+          event: 'input',
+        },
       },
     ],
   },

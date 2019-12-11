@@ -39,7 +39,7 @@
             class="helper"
             v-if="control.helper"
 
-            @click="helperMethodCall(control.name)"
+            @[control.helper.event]="helperMethodCall(control.name)"
     >
       {{helperTitle()}}
     </button>
