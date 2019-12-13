@@ -15,12 +15,12 @@
 
     <keep-alive v-else>
       <ControlInput :control="control"
-                    :value="inputValue"
+                    :value="control.value"
 
                     @input="inputHandler"
                     @change="changeStateHandler($event, control.id)"
                     @switchControl="switchControlHandler"
-                    @submit="handleNewValue"
+                    @submit="submitHandler"
       />
     </keep-alive>
   </div>
@@ -58,8 +58,6 @@
     },
     data() {
       return {
-        inputValue: 0,
-        active: false,
       }
     },
     methods: {
@@ -76,6 +74,7 @@
 
       changeStateHandler(clickAwayClose, controlId) {
         if (clickAwayClose === false) this.$emit('change', controlId);
+        console.log('change', controlId);
 
         this.$nextTick(() => {
           if (clickAwayClose && this.selectedControlId === controlId) this.$emit('change', controlId);
@@ -83,14 +82,14 @@
       },
 
       inputHandler(value) {
-        this.inputValue = value;
+        this.$emit('input', value);
       },
 
       switchControlHandler(order) {
         this.$emit('switchControl', {order, controlId: this.control.id});
       },
 
-      handleNewValue(value) {
+      submitHandler(value) {
         this.$emit('submit', value);
       },
     },

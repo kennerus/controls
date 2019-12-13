@@ -7,6 +7,7 @@
              :control="control"
              :selectedControlId="selectedControlId"
 
+             @input="inputHandler"
              @change="toggleControl"
              @switchControl="switchControlHandler"
              @submit="saveControl($event, control.id)"
@@ -15,7 +16,7 @@
 </template>
 
 <script>
-  import {mapGetters} from 'vuex';
+  import {mapGetters, mapMutations} from 'vuex';
   import Control from './Control';
 
   export default {
@@ -26,6 +27,7 @@
     computed: {
       ...mapGetters({
         getControls: 'getControls',
+        getControlIndex: 'getControlIndex',
       })
     },
     // сделаем вид, что получили данные о контролах с бэка
@@ -39,6 +41,10 @@
       }
     },
     methods: {
+      ...mapMutations({
+        CHANGE_CONTROL_VALUE: 'CHANGE_CONTROL_VALUE',
+      }),
+
       toggleControl(controlId) {
         this.selectedControlId = this.selectedControlId === controlId ? null : controlId;
       },
@@ -53,7 +59,7 @@
       switchControlHandler(switchData) {
         const {order, controlId} = switchData;
         const lastControlIndex = this.controls.length - 1;
-        const controlIdIndex = this.controls.findIndex(control => control.id === controlId);
+        const controlIdIndex = this.getLocalControlIndex(controlId);
 
         const orders = {
           next: () => {
@@ -72,12 +78,36 @@
             }
           },
         };
-
         this.selectedControlId = orders[order]();
+
+      },
+
+      inputHandler(value) {
+        const controlsFound = this.findControlsIndexes(value.bound, this.getLocalControlIndex);
+
+        controlsFound.forEach(controlIndex => this.controls[controlIndex].value = value.value);
+      },
+
+      findControlsIndexes(boundedControls, findIndexCallback) {
+        return boundedControls.map(boundedControlId => findIndexCallback(boundedControlId));
+      },
+
+      getLocalControlIndex(controlId) {
+        return this.controls.findIndex(control => control.id === controlId);
       },
 
       saveControl(value, controlId) {
+        const controlIndex = this.getLocalControlIndex(controlId);
+        this.controls[controlIndex].value = value;
       },
+
+      saveControlToVuex(value, controlId) {
+        const vuexControl = this.getControl(controlId);
+        const vuexControlsToChange = [...vuexControl, controlId];
+        const vuexControlsIndexes = this.findControlsIndexes(vuexControlsToChange);
+
+
+      }
     },
 
   }

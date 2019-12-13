@@ -15,9 +15,9 @@ export default new Vuex.Store({
           command: {
             type: 'sum',
             value: null,
+            command_bound: [2, 3],
           },
-          bound: [2, 3],
-          event: 'click',
+          bound: [],
         },
       },
       {
@@ -29,9 +29,9 @@ export default new Vuex.Store({
           command: {
             type: 'const',
             value: 1000,
+            command_bound: [3],
           },
           bound: [3],
-          event: 'input',
         },
       },
       {
@@ -42,13 +42,14 @@ export default new Vuex.Store({
           title: '',
           command: null,
           bound: [2],
-          event: 'input',
         },
       },
     ],
   },
   getters: {
     getControls: state => state.controls,
+    getControlIndex: state => id => state.controls.findIndex(control => control.id === id),
+    getControl: state => id => state.controls.find(control => control.id === id),
   },
   mutations: {
     /**
@@ -56,12 +57,13 @@ export default new Vuex.Store({
      *
      * @param state
      * @param data {Object}
-     * @param data.value {Number} - новое значение
-     * @param data.id {Number} - id контрола
+     * @param {Number} data.value - новое значение
+     * @param {Number} data.index - id контрола
      */
     'CHANGE_CONTROL_VALUE': (state, data) => {
       state.controls[data.index].value = data.value;
     },
+
     /**
      * Суммировать данные двух других контроллов
      *
@@ -80,6 +82,7 @@ export default new Vuex.Store({
       const main = state.controls.find(control => control.name === names.main);
       main.value = calculatedValue;
     },
+
     /**
      * Связь между вторым и третьим контроллом. Если изменяется один, меняется второй
      *
@@ -92,11 +95,23 @@ export default new Vuex.Store({
       const controls = state.controls.filter(control => control.name === data.name);
 
       for (let i = 0; i < controls.length; i++) {
-          controls[i].value = data.value;
+        controls[i].value = data.value;
       }
     },
   },
   actions: {
+    'CHANGE_CONTROLS_VALUE': ({state, getters, commit}, data) => {
+      return new Promise((resolve, reject) => {
+        try {
+
+
+          resolve(state.controls)
+        } catch (e) {
+          reject(e);
+        }
+      })
+    },
+
     /**
      * Прячет текущий инпут и сохраняет значение в стор
      *

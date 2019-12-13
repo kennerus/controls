@@ -14,7 +14,7 @@
            @input="inputHandler"
            @keydown.38="increment"
            @keydown.40="decrement"
-           @keydown.esc="hideInput(false)"
+           @keydown.esc="hideInputNoSave(false)"
            @keydown.enter="hideInputAndSave(false)"
            @keydown.tab.prevent="tabStep"
     >
@@ -39,7 +39,7 @@
             class="helper"
             v-if="control.helper"
 
-            @[control.helper.event]="helperMethodCall(control.name)"
+            @click="helperMethodCall(control.name)"
     >
       {{helperTitle()}}
     </button>
@@ -48,7 +48,7 @@
 
 <script>
   import { mixin as clickaway } from 'vue-clickaway';
-  import {mapState, mapGetters, mapMutations, mapActions} from 'vuex';
+  import {mapGetters, mapMutations, mapActions} from 'vuex';
 
   export default {
     name: "ControlInput",
@@ -69,6 +69,11 @@
           },
         }),
       },
+    },
+    computed: {
+      ...mapGetters({
+        getControlIndex: 'getControlIndex',
+      }),
     },
     created() {
       this.inputValue = this.value;
@@ -113,14 +118,23 @@
         this.$emit('change', clickAway);
       },
 
-      hideInputAndSave(clickAway = false) {
-        this.hideInput(clickAway);
+      saveData() {
         this.$emit('submit', this.inputValue);
       },
 
+      hideInputNoSave() {
+        this.hideInput(false);
+        this.emitValueBound(0);
+      },
+
+      hideInputAndSave(clickAway = false) {
+        this.hideInput(clickAway);
+        this.saveData();
+      },
+
       tabStep(e) {
+        this.saveData();
         this.$emit('switchControl', e.shiftKey ? 'prev' : 'next');
-        this.hideInputAndSave(false);
       },
 
       /**
@@ -129,11 +143,22 @@
        * @param {Object} event
        */
       inputHandler(event) {
-        let {value} = event.target;
+        const {value} = event.target;
 
         const clearValue = value.replace(/[^0-9.]/g, '');
         event.target.value = clearValue;
         this.inputValue = Number(clearValue);
+
+        this.emitValueBound(this.inputValue);
+      },
+
+      emitValueBound(value) {
+        const {bound} = this.control.helper;
+        if (bound.length) this.$emit('input', {value, bound});
+      },
+
+      findControlsIndexes(boundedControls) {
+        return boundedControls.map(boundedControl => this.getControlIndex(boundedControl));
       },
 
       /**
