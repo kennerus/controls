@@ -78,8 +78,8 @@
             }
           },
         };
-        this.selectedControlId = orders[order]();
 
+        this.selectedControlId = orders[order]();
       },
 
       /**
@@ -142,7 +142,7 @@
        */
       saveControlHandler(response) {
         const controlIndex = this.getControlIndex(response.id);
-        this.controls[controlIndex].value = response.value;
+        this.controls[controlIndex] = response;
       },
 
       /**

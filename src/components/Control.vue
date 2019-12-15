@@ -56,12 +56,9 @@
     computed: {
       formatNumber() {
         const valueString = this.control.value.toString();
+
         return valueString.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
       },
-    },
-    data() {
-      return {
-      }
     },
     methods: {
       changeStateHandler(clickAwayClose, controlId) {
@@ -69,8 +66,9 @@
 
         this.$nextTick(() => {
           if (clickAwayClose && this.selectedControlId === controlId) this.$emit('change', controlId);
-        })
+        });
       },
+
       /**
        * Обновление данных связанного инпута
        */

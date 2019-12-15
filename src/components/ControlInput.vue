@@ -56,6 +56,7 @@
     props: {
       value: {
         type: [Number, String],
+        default: 0,
       },
       control: {
         type: Object,
