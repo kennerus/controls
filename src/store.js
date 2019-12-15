@@ -49,7 +49,6 @@ export default new Vuex.Store({
   getters: {
     getControls: state => state.controls,
     getControlIndex: state => id => state.controls.findIndex(control => control.id === id),
-    getControl: state => id => state.controls.find(control => control.id === id),
   },
   mutations: {
     /**
