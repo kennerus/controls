@@ -39,7 +39,7 @@ export default new Vuex.Store({
         title: 'Контролл 3',
         id: 3,
         helper: {
-          title: '',
+          title: null,
           command: null,
           bound: [2],
         },
@@ -57,84 +57,50 @@ export default new Vuex.Store({
      *
      * @param state
      * @param data {Object}
-     * @param {Number} data.value - новое значение
-     * @param {Number} data.index - id контрола
+     * @param {Number} data.control - новые данные контрола
+     * @param {Number} data.controlIndex - id контрола
      */
     'CHANGE_CONTROL_VALUE': (state, data) => {
-      state.controls[data.index].value = data.value;
-    },
-
-    /**
-     * Суммировать данные двух других контроллов
-     *
-     * @param state
-     * @param names {Object} - объект имён контроллов
-     * @param names.main {String} - имя контролла, в который будет записываться сумма
-     * @param names.model {String} - имя контроллов, которые будут суммироваться
-     */
-    'CALCULATE_CONTROLS_VALUE_AND_SET_TO_MAIN': (state, names) => {
-      const controls = state.controls.filter(control => control.name === names.model);
-      let calculatedValue = 0;
-
-      for (let i = 0; i < controls.length; i++) {
-        calculatedValue = Number(calculatedValue) + Number(controls[i].value);
-      }
-      const main = state.controls.find(control => control.name === names.main);
-      main.value = calculatedValue;
-    },
-
-    /**
-     * Связь между вторым и третьим контроллом. Если изменяется один, меняется второй
-     *
-     * @param state
-     * @param data {Object}
-     * @param data.name {String} - имя контроллов, которые связываются
-     * @param data.value {Number} - значение контролла, которое будет присваиваться
-     */
-    'BIND_CONTROLLERS_VALUE': (state, data) => {
-      const controls = state.controls.filter(control => control.name === data.name);
-
-      for (let i = 0; i < controls.length; i++) {
-        controls[i].value = data.value;
-      }
+      state.controls[data.controlIndex] = data.control;
     },
   },
   actions: {
-    'CHANGE_CONTROLS_VALUE': ({state, getters, commit}, data) => {
+    /**
+     * Обновление данных контрола в "базе".
+     * Передаются все данные как в put запросе, вдруг понадобится поменять что-то ещё, кроме value.
+     *
+     * @param state
+     * @param getters
+     * @param commit
+     *
+     * @param {Object} control
+     * @param {Number} control.id - id контрола
+     * @param {Number} control.value - значение контрола
+     * @param {String} control.title - имя контрола
+     *
+     * @param {Object} [control.helper] - помощник контрола
+     * @param {String} [control.helper.title] - название хелпера
+     * @param {Array} [control.helper.bound] - id контроллов связанных с текущим
+     *
+     * @param {Object} [control.helper.command] - объект описывающий что должна делать кнопка помощник
+     * @param {String} [control.helper.command.type] - тип кнопки помощника. const (константа), sum (суммирование)
+     * @param {Number} [control.helper.command.value] - значение для константы
+     * @param {Array} [control.helper.command.command_bound] - id контролов, которые связаны командой
+     * (например при суммирование значения определённых контролов)
+     *
+     * @return {Promise<Object>} control - обновлённые данные контрола в "базе"
+     */
+    'CHANGE_CONTROL_VALUE': ({state, getters, commit}, control) => {
       return new Promise((resolve, reject) => {
         try {
+          const controlToChangeIndex = getters.getControlIndex(control.id);
+          commit('CHANGE_CONTROL_VALUE', {controlIndex: controlToChangeIndex, control});
 
-
-          resolve(state.controls)
-        } catch (e) {
-          reject(e);
+          resolve(state.controls[controlToChangeIndex]);
+        } catch (error) {
+          reject(error);
         }
       })
     },
-
-    /**
-     * Прячет текущий инпут и сохраняет значение в стор
-     *
-     * @param commit
-     * @param data {Object}
-     * @param data.name {String} - имя контроллов, которые связаны
-     * @param data.currentControlName {String} - имя текущего контролла
-     * @param data.value {Number} - значение, которое будет сохранено
-     * @param data.index {Number} - индекс текущего контролла в массиве
-     */
-    'HIDE_INPUT_AND_SAVE_DATA': ({commit}, data) => {
-      if (data.currentControlName === data.name) {
-        commit('BIND_CONTROLLERS_VALUE', {
-          name: data.name,
-          value: data.value,
-          index: data.index
-        });
-      }
-
-      commit('CHANGE_CONTROL_VALUE', {
-        value: data.value,
-        index: data.index
-      });
-    }
   }
 })

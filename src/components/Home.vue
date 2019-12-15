@@ -10,13 +10,13 @@
              @input="inputHandler"
              @change="toggleControl"
              @switchControl="switchControlHandler"
-             @submit="saveControl($event, control.id)"
+             @submit="saveControl"
     />
   </div>
 </template>
 
 <script>
-  import {mapGetters, mapMutations} from 'vuex';
+  import {mapGetters, mapActions} from 'vuex';
   import Control from './Control';
 
   export default {
@@ -27,7 +27,6 @@
     computed: {
       ...mapGetters({
         getControls: 'getControls',
-        getControlIndex: 'getControlIndex',
       })
     },
     // сделаем вид, что получили данные о контролах с бэка
@@ -41,7 +40,7 @@
       }
     },
     methods: {
-      ...mapMutations({
+      ...mapActions({
         CHANGE_CONTROL_VALUE: 'CHANGE_CONTROL_VALUE',
       }),
 
@@ -59,7 +58,7 @@
       switchControlHandler(switchData) {
         const {order, controlId} = switchData;
         const lastControlIndex = this.controls.length - 1;
-        const controlIdIndex = this.getLocalControlIndex(controlId);
+        const controlIdIndex = this.getControlIndex(controlId);
 
         const orders = {
           next: () => {
@@ -83,7 +82,7 @@
       },
 
       inputHandler(value) {
-        const controlsFound = this.findControlsIndexes(value.bound, this.getLocalControlIndex);
+        const controlsFound = this.findControlsIndexes(value.bound, this.getControlIndex);
 
         controlsFound.forEach(controlIndex => this.controls[controlIndex].value = value.value);
       },
@@ -92,22 +91,42 @@
         return boundedControls.map(boundedControlId => findIndexCallback(boundedControlId));
       },
 
-      getLocalControlIndex(controlId) {
+      getControlIndex(controlId) {
         return this.controls.findIndex(control => control.id === controlId);
       },
 
-      saveControl(value, controlId) {
-        const controlIndex = this.getLocalControlIndex(controlId);
-        this.controls[controlIndex].value = value;
+      formControlData(data) {
+        const control = data.control;
+        control.value = data.value;
+
+        return control;
       },
 
-      saveControlToVuex(value, controlId) {
-        const vuexControl = this.getControl(controlId);
-        const vuexControlsToChange = [...vuexControl, controlId];
-        const vuexControlsIndexes = this.findControlsIndexes(vuexControlsToChange);
+      /**
+       * Запись параметров в vuex и обновление в компоненте
+       *
+       * @param {Object} data
+       * @param {Number} data.value - новое значение контрола
+       * @param {Object} data.control - данные контрола
+       */
+      saveControl(data) {
+        const newControlData = this.formControlData(data);
 
+        this.CHANGE_CONTROL_VALUE(newControlData)
+          .then(response => this.saveControlHandler(response))
+          .catch(error => {
+            // на текущем проекте, я обычно вызываю метод обработчик ошибки,
+            // который в попапе показывает ошибку с бека. тут его упрощённая версия
+            console.log(error);
+            alert(error);
+          });
+      },
 
-      }
+      saveControlHandler(response) {
+        const controlIndex = this.getControlIndex(response.id);
+        this.controls[controlIndex].value = response.value;
+      },
+
     },
 
   }

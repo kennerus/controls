@@ -74,7 +74,6 @@
 
       changeStateHandler(clickAwayClose, controlId) {
         if (clickAwayClose === false) this.$emit('change', controlId);
-        console.log('change', controlId);
 
         this.$nextTick(() => {
           if (clickAwayClose && this.selectedControlId === controlId) this.$emit('change', controlId);
@@ -90,7 +89,7 @@
       },
 
       submitHandler(value) {
-        this.$emit('submit', value);
+        this.$emit('submit', {value, control: this.control});
       },
     },
   }
