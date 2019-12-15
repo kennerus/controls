@@ -6,6 +6,7 @@
              :key="control.id"
              :control="control"
              :selectedControlId="selectedControlId"
+             :sumCallback="sumInputs"
 
              @input="inputHandler"
              @change="toggleControl"
@@ -81,12 +82,22 @@
 
       },
 
-      inputHandler(value) {
-        const controlsFound = this.findControlsIndexes(value.bound, this.getControlIndex);
+      /**
+       * Обновление данных связанного инпута
+       *
+       * @param {Object} data
+       * @param {Number} data.value - записываемое значение
+       * @param {Array} data.bound - связанные инпуты
+       */
+      inputHandler(data) {
+        const controlsFound = this.findControlsIndexes(data.bound, this.getControlIndex);
 
-        controlsFound.forEach(controlIndex => this.controls[controlIndex].value = value.value);
+        controlsFound.forEach(controlIndex => this.controls[controlIndex].value = data.value);
       },
 
+      /**
+       * Возвращает индексы найденных контролов
+       */
       findControlsIndexes(boundedControls, findIndexCallback) {
         return boundedControls.map(boundedControlId => findIndexCallback(boundedControlId));
       },
@@ -95,6 +106,9 @@
         return this.controls.findIndex(control => control.id === controlId);
       },
 
+      /**
+       * Обновление value контрола перед записью во vuex
+       */
       formControlData(data) {
         const control = data.control;
         control.value = data.value;
@@ -104,6 +118,7 @@
 
       /**
        * Запись параметров в vuex и обновление в компоненте
+       * Делаем вид, что это put запрос к бэку
        *
        * @param {Object} data
        * @param {Number} data.value - новое значение контрола
@@ -122,11 +137,26 @@
           });
       },
 
+      /**
+       * Обновление данных контрола в компоненте
+       */
       saveControlHandler(response) {
         const controlIndex = this.getControlIndex(response.id);
         this.controls[controlIndex].value = response.value;
       },
 
+      /**
+       * Суммирование инпутов
+       *
+       * @param {Object} sumControl - контрол, хелпер которого суммирует определённые инпуты
+       * @return {Number} - сумма инпутов
+       */
+      sumInputs(sumControl) {
+        const {command_bound} = sumControl.helper.command;
+        const controlsToSum = this.controls.filter(control => command_bound.find(boundedControl => boundedControl === control.id));
+
+        return controlsToSum.reduce((sum, currentControl) => sum + currentControl.value, 0);
+      },
     },
 
   }

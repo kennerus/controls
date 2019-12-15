@@ -12,8 +12,8 @@
            :value="inputValue"
 
            @input="inputHandler"
-           @keydown.38="increment"
-           @keydown.40="decrement"
+           @keydown.38="incrementValue"
+           @keydown.40="decrementValue"
            @keydown.esc="hideInputNoSave(false)"
            @keydown.enter="hideInputAndSave(false)"
            @keydown.tab.prevent="tabStep"
@@ -22,7 +22,7 @@
     <button type="button"
             class="increment"
 
-            @click="increment"
+            @click="incrementValue"
     >
       <img src="../assets/icons/input_up.svg" width="8" alt="">
     </button>
@@ -30,25 +30,25 @@
     <button type="button"
             class="decrement"
 
-            @click="decrement"
+            @click="decrementValue"
     >
       <img src="../assets/icons/input_down.svg" width="8" alt="">
     </button>
 
     <button type="button"
             class="helper"
-            v-if="control.helper"
+            v-if="control.helper.command"
 
-            @click="helperMethodCall(control.name)"
+            @keydown.esc="hideInputNoSave(false)"
+            @click="commandHandler"
     >
-      {{helperTitle()}}
+      {{control.helper.title}}
     </button>
   </div>
 </template>
 
 <script>
   import { mixin as clickaway } from 'vue-clickaway';
-  import {mapGetters, mapMutations, mapActions} from 'vuex';
 
   export default {
     name: "ControlInput",
@@ -69,11 +69,9 @@
           },
         }),
       },
-    },
-    computed: {
-      ...mapGetters({
-        getControlIndex: 'getControlIndex',
-      }),
+      sumCallback: {
+        type: Function
+      },
     },
     created() {
       this.inputValue = this.value;
@@ -87,34 +85,15 @@
       }
     },
     methods: {
-      ...mapMutations({
-        changeControlStatus: 'CHANGE_CONTROL_STATUS',
-        calculateControlsValueAndSetToMain: 'CALCULATE_CONTROLS_VALUE_AND_SET_TO_MAIN',
-        bindControllersValue: 'BIND_CONTROLLERS_VALUE',
-        switchInputsTab: 'SWITCH_BETWEEN_INPUTS_TAB',
-        switchInputsShiftTab: 'SWITCH_BETWEEN_INPUTS_SHIFT_TAB',
-      }),
-
-      ...mapActions({
-        hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
-      }),
-
-      /**
-       * У некоторых инпутов может не быть кнопки помощника, поэтому проверяем есть ли кнопка
-       */
-      helperTitle() {
-        return this.control.helper ? this.control.helper.title : '';
-      },
-
-      increment() {
+      incrementValue() {
         this.inputValue++;
       },
 
-      decrement() {
+      decrementValue() {
         if (this.inputValue > 0) this.inputValue--;
       },
 
-      hideInput(clickAway) {
+      hideInput(clickAway = false) {
         this.$emit('change', clickAway);
       },
 
@@ -122,16 +101,27 @@
         this.$emit('submit', this.inputValue);
       },
 
+      /**
+       * Закрытие инпута без сохранения данных
+       */
       hideInputNoSave() {
-        this.hideInput(false);
+        this.hideInput();
         this.emitValueBound(0);
       },
 
+      /**
+       * Эмит данных наверх с сохранением. Указывает как был закрыт инпут
+       *
+       * @param {Boolean=false} clickAway - клик вне инпута
+       */
       hideInputAndSave(clickAway = false) {
         this.hideInput(clickAway);
         this.saveData();
       },
 
+      /**
+       * Переключение между инпутами tab/shift+tab с сохранением данных
+       */
       tabStep(e) {
         this.saveData();
         this.$emit('switchControl', e.shiftKey ? 'prev' : 'next');
@@ -139,6 +129,7 @@
 
       /**
        * При вводе символов нужно обновлять value инпута, иначе в инпуте будут показываться другие символы
+       * Помимо этого записывает данные в связанный инпут, если надо
        *
        * @param {Object} event
        */
@@ -147,35 +138,43 @@
 
         const clearValue = value.replace(/[^0-9.]/g, '');
         event.target.value = clearValue;
-        this.inputValue = Number(clearValue);
+        this.setValue(clearValue);
+      },
 
+      /**
+       * Запись данных в инпут для связанного инпута
+       */
+      setValue(value) {
+        this.inputValue = Number(value);
         this.emitValueBound(this.inputValue);
       },
 
+      /**
+       * Эмитит данные для связанного инпута
+       */
       emitValueBound(value) {
         const {bound} = this.control.helper;
         if (bound.length) this.$emit('input', {value, bound});
       },
 
-      findControlsIndexes(boundedControls) {
-        return boundedControls.map(boundedControl => this.getControlIndex(boundedControl));
+      sumHandler() {
+        this.inputValue = this.sumCallback(this.control);
+      },
+
+      constHandler() {
+        this.setValue(this.control.helper.command.value);
       },
 
       /**
-       * Событие, которое вешается на кнопку помощник
-       *
-       * @param name {String} - имя контролла
+       * Обработчик клика на кнопку помощник
        */
-      helperMethodCall(name) {
-        if (name === 'main') {
-          this.calculateControlsValueAndSetToMain({
-            main: 'main',
-            model: 'model'
-          });
-          this.inputValue = this.control.value;
-        } else if (name === 'model') {
-          this.inputValue = this.constValue;
-        }
+      commandHandler() {
+        const commands = {
+          sum: this.sumHandler,
+          const: this.constHandler,
+        };
+
+        commands[this.control.helper.command.type]();
       },
     },
   }

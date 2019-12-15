@@ -16,6 +16,7 @@
     <keep-alive v-else>
       <ControlInput :control="control"
                     :value="control.value"
+                    :sumCallback="sumCallback"
 
                     @input="inputHandler"
                     @change="changeStateHandler($event, control.id)"
@@ -27,7 +28,6 @@
 </template>
 
 <script>
-  import {mapGetters, mapMutations, mapActions} from 'vuex';
   import ControlInput from './ControlInput';
 
   export default {
@@ -48,7 +48,10 @@
             title: 'Сумма',
           },
         }),
-      }
+      },
+      sumCallback: {
+        type: Function,
+      },
     },
     computed: {
       formatNumber() {
@@ -61,17 +64,6 @@
       }
     },
     methods: {
-      ...mapMutations({
-        changeControlState: 'CHANGE_CONTROL_VALUE',
-        changeControlStatus: 'CHANGE_CONTROL_STATUS',
-        bindConrollersValue: 'BIND_CONTROLLERS_VALUE',
-        hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
-      }),
-
-      ...mapActions({
-        hideInputAndSaveData: 'HIDE_INPUT_AND_SAVE_DATA',
-      }),
-
       changeStateHandler(clickAwayClose, controlId) {
         if (clickAwayClose === false) this.$emit('change', controlId);
 
@@ -79,7 +71,9 @@
           if (clickAwayClose && this.selectedControlId === controlId) this.$emit('change', controlId);
         })
       },
-
+      /**
+       * Обновление данных связанного инпута
+       */
       inputHandler(value) {
         this.$emit('input', value);
       },
