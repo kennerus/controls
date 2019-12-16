@@ -113,7 +113,8 @@
       /**
        * Эмит данных наверх с сохранением. Указывает как был закрыт инпут
        *
-       * @param {Boolean=false} clickAway - клик вне инпута
+       * @param {Object | Boolean=false} clickAway - клик вне инпута. Может быть true/false
+       * или объектом (дом элемент по которому произошёл клик вне инпута)
        */
       hideInputAndSave(clickAway = false) {
         this.hideInput(clickAway);
