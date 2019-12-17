@@ -88,10 +88,14 @@
     methods: {
       incrementValue() {
         this.inputValue++;
+        this.emitValueBound(this.inputValue);
       },
 
       decrementValue() {
-        if (this.inputValue > 0) this.inputValue--;
+        if (this.inputValue > 0) {
+          this.inputValue--;
+          this.emitValueBound(this.inputValue);
+        }
       },
 
       hideInput(clickAway = false) {
